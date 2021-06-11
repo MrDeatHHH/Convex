@@ -15,7 +15,7 @@ const double infinity = 10000000000;
 const int amount_of_samples = 4;
 const double lambda = 1;
 const double starting_ksi = 10;
-const int total_iter = 100;
+const int total_iter = 10;
 
 void save_and_show(int* res, const int width, const int height, string name, bool save = false)
 {
@@ -172,10 +172,10 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 				grad_g[b] = 0;
 
 			for (int a = 0; a < 256; ++a)
-				grad_q[a] -= 2 * lambda * ksi * abs(q[a]);
+				grad_q[a] -= 2 * lambda * abs(q[a]);
 
 			for (int b = 0; b < modK; ++b)
-				grad_g[b] -= 2 * lambda * ksi * abs(g[b]);
+				grad_g[b] -= 2 * lambda * abs(g[b]);
 			
 			// Update q
 			for (int t = 0; t < modT; ++t)
@@ -185,23 +185,22 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 
 				if ((t + gcolors[i][t] * heightes[i]) < modT)
 				{
-					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + res[t] * heightes[i]) * 3])] -= ksi;
-					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 1])] -= ksi;
-					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 2])] -= ksi;
+					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + res[t] * heightes[i]) * 3])] -= 1;
+					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 1])] -= 1;
+					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 2])] -= 1;
 
-					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3])] += ksi;
-					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 1])] += ksi;
-					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 2])] += ksi;
+					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3])] += 1;
+					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 1])] += 1;
+					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 2])] += 1;
 				}
 			}
 
 			// Update g
 			for (int t = 0; t < modT - heightes[i]; ++t)
 			{
-				grad_g[abs(res[t] - res[t + heightes[i]])] -= ksi;
-				grad_g[abs(gcolors[i][t] - gcolors[i][t + heightes[i]])] += ksi;
+				grad_g[abs(res[t] - res[t + heightes[i]])] -= 1;
+				grad_g[abs(gcolors[i][t] - gcolors[i][t + heightes[i]])] += 1;
 			}
-
 
 			// Normalizing grads
 			double sum_grad = 0.;
@@ -213,10 +212,10 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 				sum_grad += pow(grad_g[b], 2);
 
 			for (int a = 0; a < 256; ++a)
-				q[a] += grad_q[a] / sqrt(sum_grad);
+				q[a] += grad_q[a]  * ksi / sqrt(sum_grad);
 
 			for (int b = 0; b < modK; ++b)
-				g[b] += grad_g[b] / sqrt(sum_grad);
+				g[b] += grad_g[b] * ksi / sqrt(sum_grad);
 
 			delete[] grad_q;
 			delete[] grad_g;
