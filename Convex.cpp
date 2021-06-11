@@ -13,9 +13,9 @@ const int modNt = 2;
 const double infinity = 10000000000;
 
 const int amount_of_samples = 4;
-const double lambda = 1;
+const double lambda = 100;
 const double starting_ksi = 10;
-const int total_iter = 10;
+const int total_iter = 100;
 
 void save_and_show(int* res, const int width, const int height, string name, bool save = false)
 {
@@ -172,10 +172,10 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 				grad_g[b] = 0;
 
 			for (int a = 0; a < 256; ++a)
-				grad_q[a] -= 2 * lambda * abs(q[a]);
+				grad_q[a] -= 2 * lambda * q[a];
 
 			for (int b = 0; b < modK; ++b)
-				grad_g[b] -= 2 * lambda * abs(g[b]);
+				grad_g[b] -= 2 * lambda * g[b];
 			
 			// Update q
 			for (int t = 0; t < modT; ++t)
