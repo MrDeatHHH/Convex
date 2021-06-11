@@ -15,7 +15,7 @@ const double infinity = 10000000000;
 const int amount_of_samples = 4;
 const double lambda = 1;
 const double starting_ksi = 10;
-const int total_iter = 100;
+const int total_iter = 1;
 
 void save_and_show(int* res, const int width, const int height, string name, bool save = false)
 {
@@ -308,7 +308,18 @@ int main()
 	int* res = dynamics(width, height, ltest, rtest, g, q, L);
 
 	save_and_show(res, width, height, "result", true);
-
-	waitKey(0);
+    
+    std::cout<<"q:\n";
+    for (int i = 0; i < 256; ++i){
+		std::cout<<q[i]<<"  ";
+    }
+    std::cout<<"\n\n";
+    std::cout<<"g:\n";
+	for (int i = 0; i < modK; ++i){
+		std::cout<<g[i]<<"  ";
+    }
+    std::cout<<"\n\n";
+	
+    waitKey(0);
 	return 0;
 }
