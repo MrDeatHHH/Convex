@@ -4,11 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <chrono> 
 
 using namespace cv;
 using namespace std;
-using namespace std::chrono;
 
 const int modK = 21;
 const int modNt = 2;
@@ -266,6 +264,7 @@ int main()
 		save_and_show(res, widthes[i], heightes[i], "sample number " + to_string(i), false);
 
 		delete[] L;
+		delete[] res;
 	}
 
 	Mat limage_, limage[4];
