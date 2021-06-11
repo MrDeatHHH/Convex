@@ -15,7 +15,7 @@ const double infinity = 10000000000;
 const int amount_of_samples = 4;
 const double lambda = 1;
 const double starting_ksi = 10;
-const int total_iter = 10;
+const int total_iter = 100;
 
 void save_and_show(int* res, const int width, const int height, string name, bool save = false)
 {
@@ -204,20 +204,19 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 
 
 			// Normalizing grads
-			double sum_grad_q = 0.;
-			double sum_grad_g = 0.;
+			double sum_grad = 0.;
 			
 			for (int a = 0; a < 256; ++a)
-				sum_grad_q += grad_q[a];
+				sum_grad += pow(grad_q[a], 2);
 
 			for (int b = 0; b < modK; ++b)
-				sum_grad_g += grad_g[b];
+				sum_grad += pow(grad_g[b], 2);
 
 			for (int a = 0; a < 256; ++a)
-				q[a] += grad_q[a] / sum_grad_q;
+				q[a] += grad_q[a] / sqrt(sum_grad);
 
 			for (int b = 0; b < modK; ++b)
-				g[b] += grad_g[b] / sum_grad_g;
+				g[b] += grad_g[b] / sqrt(sum_grad);
 
 			delete[] grad_q;
 			delete[] grad_g;
