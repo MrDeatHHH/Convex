@@ -15,7 +15,7 @@ const double infinity = 10000000000;
 const int amount_of_samples = 4;
 const double lambda = 1;
 const double starting_ksi = 10;
-const int total_iter = 1;
+const int total_iter = 10;
 
 void save_and_show(int* res, const int width, const int height, string name, bool save = false)
 {
@@ -161,12 +161,22 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 
 			int* res = dynamics(widthes[i], heightes[i], lcolors[i], rcolors[i], g, q, L);
 
+			double* grad_q = new double[256]();
+			double* grad_g = new double[modK]();
+
+			// For safety
 			for (int a = 0; a < 256; ++a)
-				q[a] -= 2 * lambda * ksi * abs(q[a]);
+				grad_q[a] = 0;
 
 			for (int b = 0; b < modK; ++b)
-				g[b] -= 2 * lambda * ksi * abs(g[b]);
+				grad_g[b] = 0;
 
+			for (int a = 0; a < 256; ++a)
+				grad_q[a] -= 2 * lambda * ksi * abs(q[a]);
+
+			for (int b = 0; b < modK; ++b)
+				grad_g[b] -= 2 * lambda * ksi * abs(g[b]);
+			
 			// Update q
 			for (int t = 0; t < modT; ++t)
 			{
@@ -175,23 +185,42 @@ void update_q_g(int** lcolors, int** rcolors, int** gcolors, int* widthes, int* 
 
 				if ((t + gcolors[i][t] * heightes[i]) < modT)
 				{
-					q[abs(lcolors[i][t * 3] - rcolors[i][(t + res[t] * heightes[i]) * 3])] -= ksi;
-					q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 1])] -= ksi;
-					q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 2])] -= ksi;
+					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + res[t] * heightes[i]) * 3])] -= ksi;
+					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 1])] -= ksi;
+					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + res[t] * heightes[i]) * 3 + 2])] -= ksi;
 
-					q[abs(lcolors[i][t * 3] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3])] += ksi;
-					q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 1])] += ksi;
-					q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 2])] += ksi;
+					grad_q[abs(lcolors[i][t * 3] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3])] += ksi;
+					grad_q[abs(lcolors[i][t * 3 + 1] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 1])] += ksi;
+					grad_q[abs(lcolors[i][t * 3 + 2] - rcolors[i][(t + gcolors[i][t] * heightes[i]) * 3 + 2])] += ksi;
 				}
 			}
 
 			// Update g
 			for (int t = 0; t < modT - heightes[i]; ++t)
 			{
-				g[abs(res[t] - res[t + heightes[i]])] -= ksi;
-				g[abs(gcolors[i][t] - gcolors[i][t + heightes[i]])] += ksi;
+				grad_g[abs(res[t] - res[t + heightes[i]])] -= ksi;
+				grad_g[abs(gcolors[i][t] - gcolors[i][t + heightes[i]])] += ksi;
 			}
 
+
+			// Normalizing grads
+			double sum_grad_q = 0.;
+			double sum_grad_g = 0.;
+			
+			for (int a = 0; a < 256; ++a)
+				sum_grad_q += grad_q[a];
+
+			for (int b = 0; b < modK; ++b)
+				sum_grad_g += grad_g[b];
+
+			for (int a = 0; a < 256; ++a)
+				q[a] += grad_q[a] / sum_grad_q;
+
+			for (int b = 0; b < modK; ++b)
+				g[b] += grad_g[b] / sum_grad_g;
+
+			delete[] grad_q;
+			delete[] grad_g;
 			delete[] L;
 			delete[] res;
 		}
@@ -308,18 +337,18 @@ int main()
 	int* res = dynamics(width, height, ltest, rtest, g, q, L);
 
 	save_and_show(res, width, height, "result", true);
-    
-    std::cout<<"q:\n";
-    for (int i = 0; i < 256; ++i){
-		std::cout<<q[i]<<"  ";
-    }
-    std::cout<<"\n\n";
-    std::cout<<"g:\n";
-	for (int i = 0; i < modK; ++i){
-		std::cout<<g[i]<<"  ";
-    }
-    std::cout<<"\n\n";
 	
-    waitKey(0);
+	std::cout << "q:\n";
+	for (int i = 0; i < 256; ++i) {
+		std::cout << q[i] << "  ";
+	}
+	std::cout << "\n\n";
+	std::cout << "g:\n";
+	for (int i = 0; i < modK; ++i) {
+		std::cout << g[i] << "  ";
+	}
+	std::cout << "\n\n";
+	
+	waitKey(0);
 	return 0;
 }
